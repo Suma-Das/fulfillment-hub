@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fulfillment Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f3f5f8;--surface:#ffffff;--ink:#0f1b2d;--muted:#59657a;--line:#dce1e9;--brand:#2447d8;--brand-ink:#ffffff;
+  --ok:#157a4d;--warn:#8a5d00;--bad:#c42a20;--info:#2447d8;
+  --s-NEW:#5b6678;--s-LABELLED:#2f6fb5;--s-PICKING:#2447d8;--s-PICKED:#5b3fc4;--s-PACKED:#8a3fb5;--s-STAGED:#0f7c86;--s-SHIPPED:#157a4d;
+  --shadow:0 1px 2px rgba(15,27,45,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1420;--surface:#151e2f;--ink:#e8edf6;--muted:#9aa6bb;--line:#273250;--brand:#7f98ff;--brand-ink:#0d1420;
+    --ok:#4cc38a;--warn:#f0b83a;--bad:#ff7a70;--info:#7f98ff;
+    --s-NEW:#9aa6bb;--s-LABELLED:#6fb0f0;--s-PICKING:#7f98ff;--s-PICKED:#a590ff;--s-PACKED:#d08ae8;--s-STAGED:#4fcfd9;--s-SHIPPED:#4cc38a;--shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1420;--surface:#151e2f;--ink:#e8edf6;--muted:#9aa6bb;--line:#273250;--brand:#7f98ff;--brand-ink:#0d1420;
+  --ok:#4cc38a;--warn:#f0b83a;--bad:#ff7a70;--info:#7f98ff;
+  --s-NEW:#9aa6bb;--s-LABELLED:#6fb0f0;--s-PICKING:#7f98ff;--s-PICKED:#a590ff;--s-PACKED:#d08ae8;--s-STAGED:#4fcfd9;--s-SHIPPED:#4cc38a;--shadow:none;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;line-height:1.15}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 18px}
+
+/* header + nav */
+.top{background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.clock{font-weight:700;font-variant-numeric:tabular-nums}
+nav{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+nav .wrap{display:flex;gap:2px;overflow-x:auto;padding-top:0;padding-bottom:0}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:13px 14px 10px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center}
+nav button:hover{color:var(--ink)}
+nav button.on{color:var(--ink);border-bottom-color:var(--brand)}
+.badge{background:var(--bad);color:#fff;border-radius:99px;font-size:12px;padding:1px 7px;font-weight:700}
+.badge.n{background:var(--line);color:var(--ink)}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+
+main{padding:22px 0 60px}
+.section{margin-top:26px}
+.section>h2{font-size:18px;margin-bottom:10px;font-weight:700}
+.lead{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.sub{margin-top:6px;color:var(--muted);font-size:16px}
+
+/* buttons */
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;font-weight:600;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.big{padding:15px 20px;font-size:17px;border-radius:10px;width:100%}
+.btn.sm{padding:5px 10px;font-size:13px}
+.linkish{background:none;border:0;padding:0;color:var(--brand);font-weight:600;cursor:pointer;text-decoration:underline}
+
+/* chips */
+.chip{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12.5px;font-weight:700;color:var(--c,var(--muted));background:color-mix(in srgb,var(--c,var(--muted)) 14%,transparent);white-space:nowrap}
+.chip.ok{--c:var(--ok)}.chip.warn{--c:var(--warn)}.chip.bad{--c:var(--bad)}.chip.info{--c:var(--info)}
+.chip.pri{--c:var(--bad)}
+.st-NEW{--c:var(--s-NEW)}.st-LABELLED{--c:var(--s-LABELLED)}.st-PICKING{--c:var(--s-PICKING)}.st-PICKED{--c:var(--s-PICKED)}.st-PACKED{--c:var(--s-PACKED)}.st-STAGED{--c:var(--s-STAGED)}.st-SHIPPED{--c:var(--s-SHIPPED)}
+
+/* pipeline (the conveyor) */
+.pipe{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-top:20px}
+.seg{position:relative;padding:16px 22px 14px 26px;cursor:pointer;background:color-mix(in srgb,var(--c) 11%,var(--surface));border:0;text-align:left;
+  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%,16px 50%);margin-right:-6px;min-height:112px}
+.seg:first-child{clip-path:polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%);padding-left:16px}
+.seg:last-child{clip-path:polygon(0 0,100% 0,100% 100%,0 100%,16px 50%);margin-right:0}
+.seg:hover{background:color-mix(in srgb,var(--c) 20%,var(--surface))}
+.seg .num{font-size:38px;font-weight:800;color:var(--c);line-height:1;font-variant-numeric:tabular-nums}
+.seg .lbl{font-weight:700;margin-top:4px}
+.seg .flags{margin-top:6px;font-size:12.5px;color:var(--muted);min-height:18px}
+.seg .flags b{color:var(--bad)}
+@media (max-width:860px){.pipe{grid-template-columns:repeat(2,1fr);gap:8px}.seg,.seg:first-child,.seg:last-child{clip-path:none;margin:0;border-radius:10px;min-height:96px;padding:14px}}
+
+/* surfaces */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.panel.pad{padding:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* alerts */
+.alert{display:grid;grid-template-columns:6px 1fr auto;gap:12px;align-items:center;padding:11px 14px 11px 0;border-top:1px solid var(--line)}
+.alert:first-child{border-top:0}
+.alert .bar{align-self:stretch;border-radius:0 4px 4px 0;background:var(--info)}
+.alert.s3 .bar{background:var(--bad)}.alert.s2 .bar{background:var(--warn)}
+.alert .t{font-weight:700}
+.alert .why{color:var(--muted);font-size:14px}
+
+/* tables */
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:13px;color:var(--muted);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.click{cursor:pointer}tr.click:hover td{background:color-mix(in srgb,var(--brand) 6%,transparent)}
+tr:last-child td{border-bottom:0}
+.oid{font-weight:800;font-variant-numeric:tabular-nums}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filters input,.filters select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+
+/* pick / pack cards (warehouse screens are deliberately large) */
+.pcard{background:var(--surface);border:1px solid var(--line);border-left:8px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.pcard.pri{border-left-color:var(--bad)}
+.pcard header{margin-bottom:10px}
+.pcard header .oid{font-size:22px}
+.pl{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
+.pl .pl-main{font-size:19px}
+.pl .var{display:inline-block;margin-left:6px;padding:1px 9px;border-radius:6px;background:color-mix(in srgb,var(--warn) 18%,transparent);font-weight:800}
+.pl.done{opacity:.6}
+.pl .tick{font-size:24px;color:var(--ok);font-weight:800;line-height:1}
+.pl .slot{grid-column:2 / 4}
+.bin{font-weight:800;font-size:20px;border:2px solid var(--ink);border-radius:8px;padding:3px 10px;font-variant-numeric:tabular-nums}
+.scan{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.scan input{flex:1 1 200px;min-width:0;border:2px solid var(--line);border-radius:10px;padding:12px;font-size:17px;background:var(--bg);text-transform:uppercase}
+.demo{margin-top:6px;font-size:13px;color:var(--muted)}
+.note{border-radius:8px;padding:9px 12px;margin:8px 0;font-weight:600}
+.note.warn{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.note.bad{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.note.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.bigact{font-size:26px;font-weight:800;margin:6px 0 12px}
+
+/* pickups */
+.pick-board{padding:14px 16px}
+.pick-board h3{font-size:17px}
+.meter{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:10px 0}
+.meter i{display:block;height:100%;background:var(--ok)}
+.meter.late i{background:var(--bad)}
+.boxrow{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,16,28,.45);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--surface);z-index:41;overflow-y:auto;padding:20px;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));border-left:1px solid var(--line)}
+.drawer h2{font-size:22px}
+.drawer .blk{margin-top:18px}
+.drawer h3{font-size:14px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.opt input{margin-top:4px}
+.tl{border-left:2px solid var(--line);margin-left:6px;padding-left:14px}
+.tl div{margin-bottom:8px;font-size:14px;position:relative}
+.tl div::before{content:"";position:absolute;left:-20px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--brand)}
+textarea,.drawer input[type=text],.drawer select,.iss input,.iss select,.inv input{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.inv input{width:70px}
+#toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:10px;font-weight:600;z-index:60;max-width:92vw;display:none}
+.about p,.about li{max-width:72ch}
+.about table td:first-child{font-weight:700;width:32%}
+.empty{padding:26px;text-align:center;color:var(--muted)}
+.iss{padding:14px 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:10px 16px}
+.iss:first-child{border-top:0}
+@media (max-width:640px){.lead{font-size:24px}.iss{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.drawer{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(24px);opacity:.4}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand"><b>Fulfillment Hub</b><span class="muted small">XYZ, demo with sample data</span></div>
+  <div class="tools">
+    <span class="small muted">Time now</span><span class="clock" id="clock"></span>
+    <button class="btn sm" onclick="skip(30)" title="Move the clock forward to see how delays get flagged">Skip ahead 30 min</button>
+    <button class="btn sm" onclick="resetDemo()">Reset demo data</button>
+  </div>
+</div></header>
+<nav><div class="wrap" id="nav"></div></nav>
+<main><div class="wrap" id="app"></div></main>
+<div id="drawerRoot"></div>
+<div id="toast" role="status"></div>
+
+<script>
+const MIN=60000,HR=3600000;
+const STAGES=['NEW','LABELLED','PICKING','PICKED','PACKED','STAGED','SHIPPED'];
+const SL={NEW:'New',LABELLED:'Label ready',PICKING:'Picking',PICKED:'Picked',PACKED:'Packed',STAGED:'Staged',SHIPPED:'Shipped'};
+const REMAIN={NEW:75,LABELLED:55,PICKING:35,PICKED:20,PACKED:10,STAGED:0,SHIPPED:0}; // typical minutes of work still ahead (demo assumption)
+const STUCK={NEW:30,LABELLED:45,PICKING:40,PICKED:25,PACKED:15,STAGED:1e9}; // minutes in a stage before it counts as stuck (demo assumption)
+const ILABEL={STOCK_MISSING:'Stock not found',WRONG_ITEM_BLOCKED:'Wrong item blocked',BOX_MISSING:'Box missing',MISSED_PICKUP:'Missed pickup',MANUAL:'Reported problem'};
+const KEY='fulfillment-hub-v1';
+let S,view='tower',drawerId=null,pickMsg={};
+let filt={stage:'ALL',pri:false,flag:false,q:'',courier:'ALL'};
+let issFilter='OPEN';
+
+/* ---------- helpers ---------- */
+const now=()=>Date.now()+(S?S.offset:0);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtT=t=>new Date(t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+function fmtDT(t){const d=new Date(t),n=new Date(now());const same=d.toDateString()===n.toDateString();return fmtT(t)+(same?'':' next day')}
+function fmtDur(ms){ms=Math.abs(ms);const m=Math.round(ms/MIN);if(m<60)return m+' min';const h=Math.floor(m/60),mm=m%60;return h+' h'+(mm?' '+mm+' min':'')}
+const until=t=>{const d=t-now();return d>=0?'in '+fmtDur(d):fmtDur(d)+' ago'};
+const ord=id=>S.orders.find(o=>o.id===id);
+const prod=s=>S.products.find(p=>p.sku===s);
+const cou=id=>S.couriers.find(c=>c.id===id);
+function pickupTime(c,i){const L=c.pickups.length;return i<L?c.pickups[i]:c.pickups[L-1]+(i-L+1)*24*HR}
+function deadline(o){return o.courierId?pickupTime(cou(o.courierId),o.pickupIdx):o.slaAt}
+const cmpUrg=(a,b)=>(b.priority-a.priority)||(deadline(a)-deadline(b));
+function demand(sku){let d=0;S.orders.forEach(o=>{if(['NEW','LABELLED','PICKING'].includes(o.stage))o.lines.forEach(l=>{if(l.sku===sku&&!l.picked)d+=l.qty})});return d}
+function log(o,msg){o.history.push({t:now(),msg})}
+function setStage(o,st,msg){o.stage=st;o.stageAt=now();log(o,msg||('Moved to '+SL[st]))}
+function issue(type,o,sku,note,owner){const is={id:'I-'+(++S.seq),type,orderId:o?o.id:null,sku:sku||null,note,owner:owner||'Office',createdAt:now(),status:'OPEN'};S.issues.unshift(is);return is}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2800)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function commit(){save();render()}
+
+/* ---------- sample data ---------- */
+function rng(seed){return()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296}}
+function seedData(){
+  const T=Date.now(),r=rng(42),pick=a=>a[Math.floor(r()*a.length)];
+  S={offset:0,seededAt:T,seq:100,orders:[],transfers:[],issues:[]};
+  S.products=[
+    ['MUG-WHT-350','Ceramic Mug 350 ml','White','A-01-1'],['MUG-BLU-350','Ceramic Mug 350 ml','Blue','A-01-2'],
+    ['MAT-4-PUR','Yoga Mat 4 mm','Purple','B-02-1'],['MAT-4-BLK','Yoga Mat 4 mm','Black','B-02-2'],['MAT-6-BLK','Yoga Mat 6 mm','Black','B-02-3'],
+    ['BTL-500-SLV','Steel Bottle 500 ml','Silver','C-03-1'],['BTL-500-BLK','Steel Bottle 500 ml','Black','C-03-2'],['BTL-750-SLV','Steel Bottle 750 ml','Silver','C-03-3'],
+    ['TEE-M-GRN','Organic Tee','M / Green','D-04-1'],['TEE-L-GRN','Organic Tee','L / Green','D-04-2'],['TEE-M-WHT','Organic Tee','M / White','D-04-3'],
+    ['CND-LAV','Soy Candle','Lavender','E-05-1'],['CND-SND','Soy Candle','Sandalwood','E-05-2']
+  ].map(([sku,name,variant,bin])=>({sku,name,variant,bin,main:0,wh2:0,needsCount:false}));
+  S.couriers=[
+    {id:'SWF',name:'SwiftKart Express',days:'1 to 2 days',cost:89,lane:'Lane 1',pickups:[T-4*HR,T+90*MIN,T+5*HR],idx:1},
+    {id:'BLU',name:'BlueRoute',days:'2 to 3 days',cost:64,lane:'Lane 2',pickups:[T-4*HR,T+3*HR,T+7*HR],idx:1},
+    {id:'ECO',name:'EcoPost',days:'4 to 5 days',cost:42,lane:'Lane 3',pickups:[T-4*HR,T+6*HR,T+30*HR],idx:1}
+  ];
+  const stageList=[].concat(Array(7).fill('NEW'),Array(7).fill('LABELLED'),Array(3).fill('PICKING'),Array(4).fill('PICKED'),Array(4).fill('PACKED'),Array(8).fill('STAGED'),Array(9).fill('SHIPPED'));
+  const ch=['ShopMart','BazaarHub','Direct site'],names=['Aarav S.','Meera K.','Rohan P.','Ishita D.','Kabir M.','Ananya R.','Vivaan T.','Diya N.','Arjun B.','Saanvi G.','Reyansh C.','Kiara J.'];
+  const cities=['Ranchi','Pune','Jaipur','Kochi','Lucknow','Surat','Indore','Patna'];
+  const pool=S.products.filter(p=>p.sku!=='MAT-6-BLK').map(p=>p.sku);
+  stageList.forEach((st,i)=>{
+    let lines;
+    if(i===7)lines=[{sku:'MAT-6-BLK',qty:1}];
+    else if(i===8)lines=[{sku:'BTL-500-SLV',qty:1},{sku:'BTL-500-BLK',qty:1}];
+    else if(i===9)lines=[{sku:'CND-SND',qty:1},{sku:'MUG-WHT-350',qty:1}];
+    else{const n=(st==='PICKING'?2:1)+Math.floor(r()*2);lines=[];const used=new Set();while(lines.length<n){const s=pick(pool);if(used.has(s))continue;used.add(s);lines.push({sku:s,qty:1+(r()<.25?1:0)})}}
+    const priority=[0,8,9,21].includes(i)||r()<.18;
+    const createdAt=i===0?T-210*MIN:(st==='NEW'?T-(2+r()*25)*MIN:T-(60+r()*240)*MIN);
+    let stageAt=st==='NEW'?createdAt:T-(5+r()*20)*MIN;
+    if(i%5===0&&(st==='LABELLED'||st==='PICKED'))stageAt=T-75*MIN;
+    const o={id:'XYZ-'+(24100+i),channel:pick(ch),customer:pick(names)+', '+pick(cities),priority,lines,stage:st,stageAt,createdAt,
+      slaAt:priority?T+(i===0?100*MIN:(150+Math.floor(r()*240))*MIN):T+20*HR,courierId:null,pickupIdx:0,hold:null,box:null,lane:null,history:[{t:createdAt,msg:'Received from the marketplace'}]};
+    S.orders.push(o);
+    if(st!=='NEW'){
+      if(st==='SHIPPED'){const c=pick(S.couriers);o.courierId=c.id;o.pickupIdx=0;o.stageAt=T-(60+r()*200)*MIN}
+      else{const rec=i===21?{c:S.couriers[0],idx:1}:recommend(o);o.courierId=rec.c.id;o.pickupIdx=rec.idx}
+      o.label='LBL-'+(70000+i);
+      o.lines.forEach((l,li)=>{l.picked=['PICKED','PACKED','STAGED','SHIPPED'].includes(st)||(st==='PICKING'&&li===0)});
+      if(['PACKED','STAGED','SHIPPED'].includes(st))o.box='BX-'+(5000+i);
+      if(['STAGED'].includes(st))o.lane=cou(o.courierId).lane;
+      o.history.push({t:o.stageAt,msg:'Moved to '+SL[st]});
+    }else o.lines.forEach(l=>l.picked=false);
+  });
+  S.products.forEach(p=>{p.main=demand(p.sku)+3+Math.floor(r()*20);p.wh2=Math.floor(r()*30)});
+  const set=(s,m,w)=>{const p=prod(s);if(m!=null)p.main=m;if(w!=null)p.wh2=w};
+  set('MAT-6-BLK',0,40);set('BTL-500-SLV',demand('BTL-500-SLV')+1,null);set('CND-SND',demand('CND-SND')+3,null);
+  save();
+}
+
+/* ---------- courier logic ---------- */
+function candidates(){const n=now();return S.couriers.map(c=>{let i=c.idx;while(pickupTime(c,i)<n+40*MIN)i++;return{c,idx:i,at:pickupTime(c,i)}})}
+function recommend(o){
+  const cs=candidates(),ok=cs.filter(x=>x.at<=o.slaAt),pool=(ok.length?ok:cs).slice();
+  if(o.priority)pool.sort((a,b)=>a.at-b.at||a.c.cost-b.c.cost);else pool.sort((a,b)=>a.c.cost-b.c.cost||a.at-b.at);
+  return Object.assign({},pool[0],{warn:!ok.length});
+}
+
+/* ---------- alerts (derived live, nothing to remember to check) ---------- */
+function alerts(){
+  const n=now(),out=[];
+  S.orders.forEach(o=>{
+    if(o.stage==='SHIPPED')return;
+    const dl=deadline(o),pr=o.priority,why=[];let sev=pr?3:1;
+    if(o.hold){const is=S.issues.find(i=>i.id===o.hold.issueId);why.push({tag:'On hold',msg:is?ILABEL[is.type]+': '+is.note:'On hold'});sev=Math.max(sev,pr?3:2)}
+    if(n>dl){why.push({tag:'Overdue',msg:(pr?'Priority order is ':'Order is ')+fmtDur(n-dl)+' past its '+(o.courierId?'courier pickup':'ship-by time')});sev=Math.max(sev,pr?3:2)}
+    else if(!o.hold&&n+REMAIN[o.stage]*MIN>dl){why.push({tag:'At risk',msg:fmtDur(dl-n)+' left and about '+REMAIN[o.stage]+' min of work to go'});sev=Math.max(sev,pr?3:1)}
+    if(!o.hold&&n-o.stageAt>STUCK[o.stage]*MIN){why.push({tag:'Stuck',msg:'In "'+SL[o.stage]+'" for '+fmtDur(n-o.stageAt)});sev=Math.max(sev,pr?2:1)}
+    if(why.length)out.push({o,sev,why});
+  });
+  return out.sort((a,b)=>b.sev-a.sev||deadline(a.o)-deadline(b.o));
+}
+const flagOf=id=>alerts().find(a=>a.o.id===id);
+
+/* ---------- actions ---------- */
+function applyLabel(o,c,idx){o.courierId=c.id;o.pickupIdx=idx;o.label='LBL-'+(70000+Math.floor(Math.random()*9000));setStage(o,'LABELLED','Label created for '+c.name+', pickup '+fmtDT(pickupTime(c,idx)))}
+function createLabel(id){const sel=document.querySelector('input[name=cr]:checked');if(!sel)return;const[cid,idx]=sel.value.split('|');applyLabel(ord(id),cou(cid),+idx);toast('Label created');commit()}
+function autoLabelAll(){let k=0;S.orders.filter(o=>o.stage==='NEW'&&!o.hold).forEach(o=>{const r=recommend(o);applyLabel(o,r.c,r.idx);k++});toast(k+' labels created with the recommended couriers');commit()}
+function flash(id,li,kind,text){pickMsg[id+':'+li]={kind,text}}
+function scanFrom(id,li){const el=document.getElementById('in-'+id+'-'+li);scanLine(id,li,el?el.value:'')}
+function scanLine(id,li,code){
+  const o=ord(id),l=o.lines[li],p=prod(l.sku);code=(code||'').trim().toUpperCase();if(!code)return;
+  if(code!==l.sku){
+    const w=prod(code);
+    const text=w?('Wrong item. You scanned '+w.name+', '+w.variant+'. This line needs '+p.name+', '+p.variant+'. Put it back and pick '+p.sku+'.'):('That code is not on this line. This line needs '+p.sku+'.');
+    flash(id,li,'bad',text);
+    S.issues.unshift({id:'I-'+(++S.seq),type:'WRONG_ITEM_BLOCKED',orderId:id,sku:l.sku,note:'Scanned '+code+' but the order needs '+l.sku,owner:'Warehouse lead',createdAt:now(),status:'RESOLVED',resolvedAt:now(),resolution:'Caught at the shelf, correct item picked'});
+    commit();return;
+  }
+  if(p.main<l.qty){flash(id,li,'bad','Main shelf count is lower than the quantity needed.');commit();return}
+  p.main-=l.qty;l.picked=true;delete pickMsg[id+':'+li];log(o,'Picked and verified '+l.qty+' × '+p.sku);
+  if(o.stage==='LABELLED')setStage(o,'PICKING','Picking started');
+  if(o.lines.every(x=>x.picked)){setStage(o,'PICKED','All items verified');toast(id+' is fully picked. Ready for packing.')}
+  commit();
+}
+function demoScan(id,li,similar){
+  const l=ord(id).lines[li],p=prod(l.sku);let code=l.sku;
+  if(similar){const alt=S.products.find(x=>x.sku!==p.sku&&x.name===p.name)||S.products.find(x=>x.sku!==p.sku);code=alt.sku}
+  scanLine(id,li,code);
+}
+function cantFind(id,li){
+  const o=ord(id),l=o.lines[li],p=prod(l.sku);
+  const is=issue('STOCK_MISSING',o,p.sku,'Picker could not find '+p.sku+' at '+p.bin+' (system shows '+p.main+' on the main shelf)','Office');
+  p.needsCount=true;o.hold={issueId:is.id};log(o,'On hold: stock not found');toast('Reported. The order is on hold and the office has been alerted.');commit();
+}
+function requestTransfer(sku){
+  const p=prod(sku);if(S.transfers.find(t=>t.sku===sku&&t.status==='REQUESTED'))return;
+  const need=Math.max(1,demand(sku)-p.main),qty=Math.min(p.wh2,need);
+  S.transfers.unshift({id:'T-'+(++S.seq),sku,qty,status:'REQUESTED',at:now()});toast('Move requested: '+qty+' × '+sku);commit();
+}
+function completeTransfer(id){const t=S.transfers.find(x=>x.id===id),p=prod(t.sku);p.wh2-=t.qty;p.main+=t.qty;t.status='DONE';t.doneAt=now();toast('Stock is now on the main shelf');commit()}
+function recount(sku){
+  const el=document.getElementById('rc-'+sku);if(!el||el.value==='')return;const c=Math.max(0,parseInt(el.value,10)||0),p=prod(sku),old=p.main;
+  p.main=c;p.needsCount=false;
+  S.issues.filter(i=>i.type==='STOCK_MISSING'&&i.sku===sku&&i.status==='OPEN').forEach(i=>{i.status='RESOLVED';i.resolvedAt=now();i.resolution='Recounted: '+c+' on the shelf (system had '+old+')';const o=ord(i.orderId);if(o&&o.hold&&o.hold.issueId===i.id){o.hold=null;log(o,'Released after recount')}});
+  toast('Count updated to '+c);commit();
+}
+function packOrder(id){const o=ord(id);o.box='BX-'+(5000+Math.floor(Math.random()*4000));setStage(o,'PACKED','Packed, label on box '+o.box);commit()}
+function stageOrder(id){const o=ord(id);o.lane=cou(o.courierId).lane;setStage(o,'STAGED','Placed in '+o.lane);commit()}
+function boxMissing(id){const o=ord(id),is=issue('BOX_MISSING',o,null,'Box '+o.box+' not found in '+(o.lane||'staging'),'Warehouse lead');o.hold={issueId:is.id};log(o,'On hold: box missing');toast('Reported. The warehouse lead has been alerted.');commit()}
+function collect(cid){
+  const c=cou(cid),i=c.idx;let sh=0,miss=0;
+  S.orders.filter(o=>o.courierId===cid&&o.stage!=='SHIPPED'&&o.pickupIdx<=i).forEach(o=>{
+    if(o.stage==='STAGED'&&!o.hold){setStage(o,'SHIPPED','Handed to '+c.name);sh++}
+    else{o.pickupIdx=i+1;miss++;log(o,'Not ready at pickup, moved to next pickup '+fmtDT(pickupTime(c,i+1)));issue('MISSED_PICKUP',o,null,'Was in "'+SL[o.stage]+'" when '+c.name+' collected at '+fmtT(pickupTime(c,i))+'. Moved to the next pickup.','Office')}
+  });
+  c.idx=i+1;toast(sh+' boxes handed over'+(miss?', '+miss+' missed the pickup':''));commit();
+}
+function resolveIssue(id){
+  const is=S.issues.find(i=>i.id===id),el=document.getElementById('res-'+id);const note=el&&el.value.trim()?el.value.trim():'Resolved';
+  is.status='RESOLVED';is.resolvedAt=now();is.resolution=note;const o=is.orderId&&ord(is.orderId);
+  if(o&&o.hold&&o.hold.issueId===id){o.hold=null;log(o,'Issue resolved, order resumed: '+note)}
+  toast('Issue resolved');commit();
+}
+function setOwner(id,v){S.issues.find(i=>i.id===id).owner=v;save()}
+function raiseManual(id){
+  const o=ord(id),t=document.getElementById('mi-note').value.trim(),kind=document.getElementById('mi-kind').value,pause=document.getElementById('mi-pause').checked;
+  if(!t){toast('Add a short note first');return}
+  const is=issue('MANUAL',o,null,kind+': '+t,'Office');if(pause){o.hold={issueId:is.id};log(o,'On hold: '+kind)}else log(o,'Problem reported: '+kind);
+  toast('Problem logged');commit();
+}
+function skip(m){S.offset+=m*MIN;toast('Clock moved forward '+m+' min');commit()}
+function resetDemo(){pickMsg={};drawerId=null;seedData();toast('Demo data reset');render()}
+function go(v){view=v;drawerId=null;render();window.scrollTo(0,0)}
+function openOrder(id){drawerId=id;render()}
+function closeDrawer(){drawerId=null;render()}
+function showStage(s){filt={stage:s,pri:false,flag:false,q:'',courier:'ALL'};go('orders')}
+function showFlagged(){filt={stage:'ALL',pri:false,flag:true,q:'',courier:'ALL'};go('orders')}
+
+/* ---------- views ---------- */
+const chipStage=s=>'<span class="chip st-'+s+'">'+SL[s]+'</span>';
+const priChip=o=>o.priority?'<span class="chip pri">Priority</span>':'';
+function pickBoards(){
+  return S.couriers.map(c=>{
+    const at=pickupTime(c,c.idx),assigned=S.orders.filter(o=>o.courierId===c.id&&o.stage!=='SHIPPED'&&o.pickupIdx<=c.idx);
+    const ready=assigned.filter(o=>o.stage==='STAGED'&&!o.hold),late=now()>at,pct=assigned.length?Math.round(ready.length/assigned.length*100):100;
+    return {c,at,assigned,ready,late,pct};
+  });
+}
+function vTower(){
+  const al=alerts(),open=S.orders.filter(o=>o.stage!=='SHIPPED'),boards=pickBoards().sort((a,b)=>a.at-b.at),next=boards[0];
+  const counts=STAGES.map(s=>({s,n:S.orders.filter(o=>o.stage===s).length,pri:S.orders.filter(o=>o.stage===s&&o.priority).length,flag:al.filter(a=>a.o.stage===s).length}));
+  const high=al.filter(a=>a.sev===3).length,openIss=S.issues.filter(i=>i.status==='OPEN').length;
+  return `
+  <div class="lead">${al.length?al.length+' order'+(al.length>1?'s':'')+' need attention':'Everything is on track'}${high?', '+high+' urgent':''}</div>
+  <div class="sub">Next courier pickup: ${esc(next.c.name)} at ${fmtDT(next.at)} (${until(next.at)}). ${open.length} orders still open, ${S.orders.filter(o=>o.stage==='SHIPPED').length} shipped, ${openIss} open issues.</div>
+  <div class="pipe">${counts.map(x=>`<button class="seg st-${x.s}" style="--c:var(--s-${x.s})" onclick="showStage('${x.s}')" aria-label="${SL[x.s]}: ${x.n} orders">
+    <div class="num">${x.n}</div><div class="lbl">${SL[x.s]}</div>
+    <div class="flags">${x.pri?x.pri+' priority':''}${x.pri&&x.flag?', ':''}${x.flag?'<b>'+x.flag+' flagged</b>':''}</div></button>`).join('')}</div>
+  <div class="grid2 section" style="align-items:start">
+    <div><h2>Needs attention</h2>
+      <div class="panel">${al.length?al.slice(0,9).map(alertRow).join(''):'<div class="empty">Nothing is late, stuck or on hold.</div>'}</div>
+      ${al.length>9?`<p><button class="linkish" onclick="showFlagged()">See all ${al.length} flagged orders</button></p>`:''}
+    </div>
+    <div><h2>Courier pickups</h2>${boards.map(boardCard).join('')}</div>
+  </div>`;
+}
+function alertRow(a){
+  const o=a.o;
+  return `<div class="alert s${a.sev}"><span class="bar"></span><div><div class="t"><span class="oid">${o.id}</span> ${priChip(o)} ${chipStage(o.stage)} ${a.why.map(w=>'<span class="chip '+(w.tag==='At risk'||w.tag==='Stuck'?'warn':'bad')+'">'+w.tag+'</span>').join(' ')}</div>
+  <div class="why">${a.why.map(w=>esc(w.msg)).join('. ')}</div></div><button class="btn sm" onclick="openOrder('${o.id}')">Open</button></div>`;
+}
+function boardCard(b){
+  return `<div class="panel pick-board" style="margin-bottom:12px"><h3>${esc(b.c.name)} <span class="muted small">${b.c.lane}, ${b.c.days}</span></h3>
+  <div class="small ${b.late?'':'muted'}" style="${b.late?'color:var(--bad);font-weight:700':''}">Pickup ${fmtDT(b.at)}, ${b.late?'time has passed ('+until(b.at)+')':until(b.at)}</div>
+  <div class="meter ${b.late&&b.pct<100?'late':''}"><i style="width:${b.pct}%"></i></div>
+  <div class="small">${b.ready.length} of ${b.assigned.length} boxes staged${b.assigned.length-b.ready.length?', '+(b.assigned.length-b.ready.length)+' not ready':''}</div></div>`;
+}
+
+function vOrders(){
+  const al=alerts();let list=S.orders.slice();
+  if(filt.stage!=='ALL')list=list.filter(o=>o.stage===filt.stage);
+  if(filt.pri)list=list.filter(o=>o.priority);
+  if(filt.flag)list=list.filter(o=>al.find(a=>a.o.id===o.id));
+  if(filt.courier!=='ALL')list=list.filter(o=>o.courierId===filt.courier);
+  if(filt.q)list=list.filter(o=>(o.id+o.customer+o.channel).toLowerCase().includes(filt.q.toLowerCase()));
+  list.sort((a,b)=>(a.stage==='SHIPPED')-(b.stage==='SHIPPED')||cmpUrg(a,b));
+  const newCount=S.orders.filter(o=>o.stage==='NEW'&&!o.hold).length;
+  return `<h2 style="font-size:24px;font-weight:800;margin-bottom:12px">All orders</h2>
+  <div class="filters">
+    <input id="f-q" placeholder="Search order, customer, channel" value="${esc(filt.q)}" oninput="filt.q=this.value;renderKeep('f-q')">
+    <select onchange="filt.stage=this.value;render()"><option value="ALL">All stages</option>${STAGES.map(s=>`<option value="${s}" ${filt.stage===s?'selected':''}>${SL[s]}</option>`).join('')}</select>
+    <select onchange="filt.courier=this.value;render()"><option value="ALL">All couriers</option>${S.couriers.map(c=>`<option value="${c.id}" ${filt.courier===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+    <label class="small"><input type="checkbox" ${filt.pri?'checked':''} onchange="filt.pri=this.checked;render()"> Priority only</label>
+    <label class="small"><input type="checkbox" ${filt.flag?'checked':''} onchange="filt.flag=this.checked;render()"> Flagged only</label>
+    <span style="flex:1"></span>
+    ${newCount?`<button class="btn primary" onclick="autoLabelAll()">Create labels for ${newCount} new orders</button>`:''}
+  </div>
+  <div class="panel tscroll"><table><thead><tr><th>Order</th><th>Stage</th><th>Customer</th><th>Channel</th><th>Items</th><th>Courier</th><th>Hand over by</th><th>Flags</th></tr></thead><tbody>
+  ${list.length?list.map(o=>{const a=al.find(x=>x.o.id===o.id),c=o.courierId&&cou(o.courierId);return `<tr class="click" onclick="openOrder('${o.id}')">
+    <td><span class="oid">${o.id}</span> ${priChip(o)}</td><td>${chipStage(o.stage)}</td><td>${esc(o.customer)}</td><td>${esc(o.channel)}</td>
+    <td>${o.lines.reduce((s,l)=>s+l.qty,0)}</td><td>${c?esc(c.name):'<span class="muted">Not labelled</span>'}</td>
+    <td>${o.stage==='SHIPPED'?'<span class="muted">Done</span>':fmtDT(deadline(o))+'<div class="small muted">'+until(deadline(o))+'</div>'}</td>
+    <td>${a?a.why.map(w=>'<span class="chip '+(w.tag==='At risk'||w.tag==='Stuck'?'warn':'bad')+'">'+w.tag+'</span>').join(' '):''}</td></tr>`}).join(''):'<tr><td colspan="8" class="empty">No orders match these filters.</td></tr>'}
+  </tbody></table></div>`;
+}
+function renderKeep(id){render();const el=document.getElementById(id);if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length)}}
+
+function pickLine(o,l,i){
+  const p=prod(l.sku),key=o.id+':'+i,m=pickMsg[key];
+  if(l.picked)return `<div class="pl done"><span class="tick">✓</span><div class="pl-main"><b>${l.qty} × ${esc(p.name)}</b><span class="var">${esc(p.variant)}</span></div><span class="bin">${p.bin}</span></div>`;
+  const short=p.main<l.qty,need=Math.max(1,demand(p.sku)-p.main);let ctl;
+  if(short){
+    const tr=S.transfers.find(t=>t.sku===p.sku&&t.status==='REQUESTED');
+    if(tr)ctl=`<div class="note warn">Waiting for ${tr.qty} to be moved from Warehouse 2 to the main shelf. Pick the next order and come back.</div>`;
+    else if(p.wh2>=need)ctl=`<div class="note warn">Only ${p.main} on the main shelf. Warehouse 2 has ${p.wh2}.</div><button class="btn primary" onclick="requestTransfer('${p.sku}')">Ask for ${Math.min(p.wh2,need)} to be moved to the main shelf</button>`;
+    else ctl=`<div class="note bad">Not enough stock in either warehouse.</div><button class="btn danger" onclick="cantFind('${o.id}',${i})">Report to office</button>`;
+  }else ctl=`<div class="scan"><input id="in-${o.id}-${i}" placeholder="Scan or type the SKU code" autocomplete="off" onkeydown="if(event.key==='Enter')scanFrom('${o.id}',${i})">
+    <button class="btn primary" onclick="scanFrom('${o.id}',${i})">Confirm item</button><button class="btn danger" onclick="cantFind('${o.id}',${i})">Can't find it</button></div>
+    <div class="demo">Demo shortcuts: <button class="linkish" onclick="demoScan('${o.id}',${i},false)">scan the correct item</button> or <button class="linkish" onclick="demoScan('${o.id}',${i},true)">scan a similar item</button></div>`;
+  return `<div class="pl"><span></span><div class="pl-main"><b>${l.qty} × ${esc(p.name)}</b><span class="var">${esc(p.variant)}</span><div class="small muted">SKU ${p.sku}</div></div><span class="bin" title="Shelf location">${p.bin}</span>
+    <div class="slot">${m?`<div class="note ${m.kind}">${esc(m.text)}</div>`:''}${ctl}</div></div>`;
+}
+function vPick(){
+  const act=S.orders.filter(o=>['LABELLED','PICKING'].includes(o.stage));
+  const q=act.filter(o=>!o.hold).sort(cmpUrg),held=act.filter(o=>o.hold);
+  const first=q.filter(o=>o.priority),rest=q.filter(o=>!o.priority);
+  const card=o=>{const c=cou(o.courierId);return `<article class="pcard ${o.priority?'pri':''}"><header><div><span class="oid">${o.id}</span> ${o.priority?'<span class="chip pri">Priority, ships today</span>':''} ${o.stage==='PICKING'?chipStage('PICKING'):''}</div>
+    <div class="muted small">${esc(c.name)} collects ${fmtDT(deadline(o))} (${until(deadline(o))}), staging ${c.lane}</div></header>${o.lines.map((l,i)=>pickLine(o,l,i)).join('')}</article>`};
+  return `<h2 style="font-size:24px;font-weight:800">Pick list</h2><p class="muted">Orders are sorted so priority and the earliest courier come first. Confirm each item by its SKU code before it goes in the tote.</p>
+  ${first.length?'<h3 style="margin:18px 0 10px">Priority, do these first</h3>'+first.map(card).join(''):''}
+  ${rest.length?'<h3 style="margin:18px 0 10px">Regular orders</h3>'+rest.map(card).join(''):''}
+  ${!q.length?'<div class="panel empty">Nothing to pick right now.</div>':''}
+  ${held.length?`<h3 style="margin:22px 0 10px">On hold (${held.length})</h3><div class="panel">${held.map(o=>`<div class="boxrow" style="padding:10px 14px"><span><span class="oid">${o.id}</span> <span class="muted small">${esc((S.issues.find(i=>i.id===o.hold.issueId)||{}).note||'')}</span></span><button class="btn sm" onclick="openOrder('${o.id}')">Open</button></div>`).join('')}</div>`:''}`;
+}
+
+function vPack(){
+  const toPack=S.orders.filter(o=>o.stage==='PICKED'&&!o.hold).sort(cmpUrg),toStage=S.orders.filter(o=>o.stage==='PACKED'&&!o.hold).sort(cmpUrg);
+  const boards=pickBoards().sort((a,b)=>a.at-b.at);
+  return `<h2 style="font-size:24px;font-weight:800;margin-bottom:12px">Pack, stage and hand over</h2>
+  <div class="grid2" style="align-items:start">
+   <div><h2 style="font-size:18px;margin-bottom:10px">1. To pack (${toPack.length})</h2>
+    ${toPack.map(o=>`<article class="pcard ${o.priority?'pri':''}"><div><span class="oid" style="font-size:20px">${o.id}</span> ${priChip(o)}</div>
+      <div style="margin:8px 0;font-size:17px">${o.lines.map(l=>`<div>${l.qty} × <b>${esc(prod(l.sku).name)}</b> <span class="var" style="background:color-mix(in srgb,var(--warn) 18%,transparent);padding:1px 8px;border-radius:6px;font-weight:800">${esc(prod(l.sku).variant)}</span></div>`).join('')}</div>
+      <div class="small muted" style="margin-bottom:10px">Check the box contents against this list, then attach label ${o.label}.</div>
+      <button class="btn primary big" onclick="packOrder('${o.id}')">Packed, label is on the box</button></article>`).join('')||'<div class="panel empty">No orders waiting to be packed.</div>'}
+   </div>
+   <div><h2 style="font-size:18px;margin-bottom:10px">2. To stage (${toStage.length})</h2>
+    ${toStage.map(o=>{const c=cou(o.courierId);return `<article class="pcard ${o.priority?'pri':''}"><div><span class="oid" style="font-size:20px">${o.id}</span> ${priChip(o)} <span class="muted small">box ${o.box}</span></div>
+      <div class="bigact">Put it in ${c.lane}</div><div class="muted small" style="margin-bottom:10px">${esc(c.name)} collects ${fmtDT(deadline(o))} (${until(deadline(o))})</div>
+      <button class="btn primary big" onclick="stageOrder('${o.id}')">The box is in ${c.lane}</button></article>`}).join('')||'<div class="panel empty">No packed boxes waiting for a lane.</div>'}
+   </div></div>
+  <div class="section"><h2>3. Courier handover</h2><div class="grid3">${boards.map(b=>{
+    const notReady=b.assigned.filter(o=>!b.ready.includes(o));
+    return `<div class="panel pick-board"><h3>${esc(b.c.name)} <span class="muted small">${b.c.lane}</span></h3>
+    <div class="small" style="${b.late?'color:var(--bad);font-weight:700':'color:var(--muted)'}">Pickup ${fmtDT(b.at)}, ${b.late?'time has passed ('+until(b.at)+')':until(b.at)}</div>
+    <div class="meter ${b.late&&b.pct<100?'late':''}"><i style="width:${b.pct}%"></i></div>
+    <div class="small"><b>${b.ready.length} boxes ready</b> in ${b.c.lane}</div>
+    ${b.ready.map(o=>`<div class="boxrow"><span><span class="oid">${o.id}</span> ${priChip(o)} <span class="muted">${o.box}</span></span><button class="linkish small" onclick="boxMissing('${o.id}')">Can't find box</button></div>`).join('')}
+    ${notReady.length?`<div class="small" style="margin-top:10px;color:var(--warn);font-weight:700">${notReady.length} not ready for this pickup</div>${notReady.map(o=>`<div class="boxrow"><span><span class="oid">${o.id}</span> ${priChip(o)}</span>${chipStage(o.stage)}</div>`).join('')}`:''}
+    <button class="btn ${b.ready.length?'primary':''} big" style="margin-top:12px;font-size:15px;padding:11px" onclick="collect('${b.c.id}')">Courier collected${b.ready.length?' '+b.ready.length+' boxes':''}</button></div>`}).join('')}</div>
+   <p class="muted small" style="margin-top:8px">Boxes that are not staged when the courier collects are moved to the next pickup automatically and logged as a missed pickup.</p></div>`;
+}
+
+function stockStatus(p){
+  const d=demand(p.sku);
+  if(p.needsCount)return{k:'bad',t:'Recount needed'};
+  if(p.main>=d)return p.main-d<=3?{k:'warn',t:'Low'}:{k:'ok',t:'OK'};
+  const sh=d-p.main;
+  return p.wh2>=sh?{k:'warn',t:'Short by '+sh+', move from Warehouse 2'}:{k:'bad',t:'Short by '+sh+', not enough stock'};
+}
+function vInv(){
+  const open=S.transfers.filter(t=>t.status==='REQUESTED'),done=S.transfers.filter(t=>t.status==='DONE').slice(0,3);
+  return `<h2 style="font-size:24px;font-weight:800;margin-bottom:12px">Inventory</h2>
+  <p class="muted" style="max-width:72ch">"Needed" is the quantity on open orders that has not been picked yet. A product is flagged when the main shelf cannot cover it, or when a picker reports it missing.</p>
+  ${open.length||done.length?`<div class="panel pad" style="margin-bottom:16px"><h3 style="font-size:16px;margin-bottom:6px">Stock moves from Warehouse 2</h3>
+    ${open.map(t=>`<div class="boxrow"><span><b>${t.qty} × ${esc(prod(t.sku).name)}</b>, ${esc(prod(t.sku).variant)} <span class="chip warn">Requested ${fmtT(t.at)}</span></span><button class="btn primary sm" onclick="completeTransfer('${t.id}')">Mark as moved to main shelf</button></div>`).join('')}
+    ${done.map(t=>`<div class="boxrow muted"><span>${t.qty} × ${esc(prod(t.sku).name)}, ${esc(prod(t.sku).variant)}</span><span class="chip ok">Moved ${fmtT(t.doneAt)}</span></div>`).join('')}</div>`:''}
+  <div class="panel tscroll inv"><table><thead><tr><th>Product</th><th>Variant</th><th>SKU</th><th>Shelf</th><th>Main shelf</th><th>Needed</th><th>Warehouse 2</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  ${S.products.map(p=>{const s=stockStatus(p),d=demand(p.sku),sh=Math.max(0,d-p.main);return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.variant)}</td><td class="small">${p.sku}</td><td>${p.bin}</td><td><b>${p.main}</b></td><td>${d}</td><td>${p.wh2}</td>
+    <td><span class="chip ${s.k}">${s.t}</span></td>
+    <td style="white-space:nowrap">${p.needsCount?`<input id="rc-${p.sku}" type="number" min="0" placeholder="Counted"> <button class="btn sm primary" onclick="recount('${p.sku}')">Save count</button>`:
+      (sh>0&&p.wh2>0&&!S.transfers.find(t=>t.sku===p.sku&&t.status==='REQUESTED')?`<button class="btn sm" onclick="requestTransfer('${p.sku}')">Request move</button>`:'')}</td></tr>`}).join('')}
+  </tbody></table></div>`;
+}
+
+function vIssues(){
+  const list=S.issues.filter(i=>i.status===issFilter);
+  return `<h2 style="font-size:24px;font-weight:800;margin-bottom:12px">Issues</h2>
+  <div class="filters"><button class="btn ${issFilter==='OPEN'?'primary':''}" onclick="issFilter='OPEN';render()">Open (${S.issues.filter(i=>i.status==='OPEN').length})</button>
+  <button class="btn ${issFilter==='RESOLVED'?'primary':''}" onclick="issFilter='RESOLVED';render()">Resolved (${S.issues.filter(i=>i.status==='RESOLVED').length})</button></div>
+  <div class="panel">${list.length?list.map(i=>`<div class="iss"><div><div><span class="chip ${i.status==='OPEN'?'bad':'ok'}">${ILABEL[i.type]}</span> ${i.orderId?`<button class="linkish oid" onclick="openOrder('${i.orderId}')">${i.orderId}</button>`:''} <span class="muted small">raised ${fmtT(i.createdAt)}, ${until(i.createdAt)}</span></div>
+    <div style="margin:6px 0">${esc(i.note)}</div>
+    ${i.status==='OPEN'?`<div style="display:flex;gap:8px;flex-wrap:wrap;max-width:560px"><input id="res-${i.id}" type="text" placeholder="What was done?" style="flex:1 1 220px"><button class="btn primary" onclick="resolveIssue('${i.id}')">Resolve${i.orderId&&ord(i.orderId)&&ord(i.orderId).hold&&ord(i.orderId).hold.issueId===i.id?' and resume order':''}</button></div>`:`<div class="small muted">Resolution: ${esc(i.resolution||'')}</div>`}</div>
+    <div class="small"><label class="muted">Owner<br><select onchange="setOwner('${i.id}',this.value)" ${i.status!=='OPEN'?'disabled':''}>${['Office','Warehouse lead','Manager'].map(x=>`<option ${i.owner===x?'selected':''}>${x}</option>`).join('')}</select></label></div></div>`).join(''):'<div class="empty">No '+issFilter.toLowerCase()+' issues.</div>'}</div>`;
+}
+
+function vAbout(){
+  return `<div class="about"><h2 style="font-size:26px;font-weight:800;margin-bottom:6px">How this app is built around XYZ's problems</h2>
+  <p class="muted">All data here is sample data generated for the demo. Order counts, courier rates, pickup times and the "typical minutes of work left" used for risk alerts are assumptions I made, not measurements. Use Skip ahead and Reset demo data in the top bar to replay scenarios.</p>
+  <div class="panel tscroll" style="margin:16px 0"><table><thead><tr><th>Problem from the brief</th><th>What the app does</th></tr></thead><tbody>
+  <tr><td>Can't see order status at a glance</td><td>One order record with a single stage. The Control tower shows the pipeline from New to Shipped with counts, and the Orders list can be filtered by stage, courier and priority.</td></tr>
+  <tr><td>Delays go unnoticed</td><td>Alerts are calculated live from the clock: overdue, at risk (not enough time left for the work remaining) and stuck in one stage too long. Nobody has to remember to check.</td></tr>
+  <tr><td>Priority orders get mixed in</td><td>Priority orders carry a ship-today deadline, are picked first on the Pick list, and the label step recommends the earliest courier that can still make it.</td></tr>
+  <tr><td>Stock can't be found or has gone missing</td><td>"Can't find it" puts the order on hold, flags the product for a recount and alerts the office. A recount releases the held orders. Short stock on the main shelf can be moved from Warehouse 2 before picking.</td></tr>
+  <tr><td>Wrong product or variant shipped</td><td>Each pick line must be confirmed by its SKU code. A similar item (same product, other variant) is rejected with a plain message and logged.</td></tr>
+  <tr><td>Packed boxes misplaced, courier misses pickup</td><td>Each courier has a lane. The stage step tells the packer which lane. The handover board shows boxes ready vs not ready per pickup, and anything not staged is moved to the next pickup and logged.</td></tr>
+  <tr><td>Problems handled informally</td><td>Every problem becomes an issue with an owner, status and resolution note. Issues that block an order put it on hold until resolved.</td></tr>
+  </tbody></table></div>
+  <h2 style="font-size:18px;margin-bottom:6px">Why these choices</h2>
+  <ul><li>The warehouse screens (Pick and Pack) use large text, one action per card and no menus, because the team is experienced but not comfortable with technology.</li>
+  <li>The office view is dense on purpose: a person handling 200 to 300 orders a day needs bulk actions, such as creating labels for all new orders in one click.</li>
+  <li>Alerts are derived, not typed in, so they cannot be forgotten or go stale.</li></ul>
+  <h2 style="font-size:18px;margin:16px 0 6px">Suggested demo path</h2>
+  <ol><li>Control tower: read the headline, then open the oldest priority order that is stuck in New.</li>
+  <li>Orders: click "Create labels for new orders".</li>
+  <li>Pick list: on a bottle order use "scan a similar item" to see the wrong-variant block, then scan the correct item.</li>
+  <li>Pick list: find the yoga mat with no main-shelf stock, request the move, then complete it under Inventory.</li>
+  <li>Pick list: on the candle order press "Can't find it", then recount under Inventory to release the order.</li>
+  <li>Pack: pack and stage an order, then press Skip ahead 30 min a few times and press "Courier collected" with unstaged boxes to see a missed pickup logged.</li></ol></div>`;
+}
+
+/* ---------- drawer ---------- */
+function drawer(){
+  if(!drawerId)return '';
+  const o=ord(drawerId),a=flagOf(o.id),c=o.courierId&&cou(o.courierId),openIss=S.issues.filter(i=>i.orderId===o.id&&i.status==='OPEN');
+  let action='';
+  if(o.hold){const is=S.issues.find(i=>i.id===o.hold.issueId);action=`<div class="note bad">On hold: ${esc(is?is.note:'')}</div><div class="small muted">Resolve it on the <button class="linkish" onclick="go('issues')">Issues</button> screen${is&&is.type==='STOCK_MISSING'?' or save a recount on Inventory':''}.</div>`}
+  else if(o.stage==='NEW'){
+    const cs=candidates(),rec=recommend(o);
+    action=`<h3>Choose a courier${o.priority?' (priority: must ship today)':''}</h3>`+cs.map(x=>{const best=x.c.id===rec.c.id,late=o.priority&&x.at>o.slaAt;
+      return `<label class="opt"><input type="radio" name="cr" value="${x.c.id}|${x.idx}" ${best?'checked':''}><span><b>${esc(x.c.name)}</b> ${best?'<span class="chip ok">Recommended</span>':''} ${late?'<span class="chip bad">Misses ship-today cutoff</span>':''}<br><span class="small muted">${x.c.days}, ₹${x.c.cost} sample rate, pickup ${fmtDT(x.at)}</span></span></label>`}).join('')+
+      `${rec.warn?'<div class="note warn">No courier can collect before the ship-by time. The earliest is recommended.</div>':''}<button class="btn primary big" onclick="createLabel('${o.id}')">Create label</button>`;
+  }
+  else if(o.stage==='LABELLED'||o.stage==='PICKING')action=`<div class="note ok">Waiting on the warehouse. <button class="linkish" onclick="go('pick')">Go to Pick list</button></div>`;
+  else if(o.stage==='PICKED'||o.stage==='PACKED')action=`<div class="note ok">Next: ${o.stage==='PICKED'?'pack the box':'place the box in '+c.lane}. <button class="linkish" onclick="go('pack')">Go to Pack and stage</button></div>`;
+  else if(o.stage==='STAGED')action=`<div class="note ok">In ${o.lane}, waiting for ${esc(c.name)} at ${fmtDT(deadline(o))}.</div><button class="btn danger" onclick="boxMissing('${o.id}')">Report box missing</button>`;
+  else action=`<div class="note ok">Handed to ${esc(c.name)}.</div>`;
+  return `<div class="scrim" onclick="closeDrawer()"></div><aside class="drawer" role="dialog" aria-label="Order ${o.id}">
+  <div style="display:flex;justify-content:space-between;gap:10px"><div><h2>${o.id}</h2><div style="margin-top:6px">${chipStage(o.stage)} ${priChip(o)}</div></div><button class="btn sm" onclick="closeDrawer()" aria-label="Close">Close</button></div>
+  <p class="muted small" style="margin:10px 0 0">${esc(o.customer)}, via ${esc(o.channel)}${c?', '+esc(c.name)+', label '+o.label:''}${o.stage!=='SHIPPED'?'<br>Hand over by '+fmtDT(deadline(o))+' ('+until(deadline(o))+')':''}</p>
+  ${a?`<div class="blk">${a.why.map(w=>'<div class="note '+(w.tag==='At risk'||w.tag==='Stuck'?'warn':'bad')+'">'+w.tag+': '+esc(w.msg)+'</div>').join('')}</div>`:''}
+  <div class="blk"><h3>Items</h3>${o.lines.map(l=>{const p=prod(l.sku);return `<div class="boxrow"><span>${l.picked?'✓ ':''}<b>${l.qty} × ${esc(p.name)}</b>, ${esc(p.variant)}</span><span class="muted small">${p.sku}, ${p.bin}</span></div>`}).join('')}</div>
+  <div class="blk">${action}</div>
+  ${o.stage!=='SHIPPED'&&!o.hold?`<div class="blk"><h3>Report a problem</h3><select id="mi-kind"><option>Customer changed the order</option><option>Damaged item</option><option>Address problem</option><option>Other</option></select>
+    <textarea id="mi-note" rows="2" placeholder="What happened?" style="margin-top:8px"></textarea>
+    <label class="small" style="display:block;margin:6px 0"><input type="checkbox" id="mi-pause" checked> Pause this order until it is resolved</label><button class="btn" onclick="raiseManual('${o.id}')">Log problem</button></div>`:''}
+  <div class="blk"><h3>History</h3><div class="tl">${o.history.slice().reverse().map(h=>`<div><span class="muted">${fmtT(h.t)}</span> ${esc(h.msg)}</div>`).join('')}</div></div></aside>`;
+}
+
+/* ---------- shell ---------- */
+function render(){
+  const al=alerts(),openIss=S.issues.filter(i=>i.status==='OPEN').length;
+  const pickN=S.orders.filter(o=>['LABELLED','PICKING'].includes(o.stage)&&!o.hold).length,packN=S.orders.filter(o=>['PICKED','PACKED'].includes(o.stage)&&!o.hold).length;
+  const tabs=[['tower','Control tower',al.length?'<span class="badge">'+al.length+'</span>':''],['orders','Orders',''],['pick','Pick list',pickN?'<span class="badge n">'+pickN+'</span>':''],['pack','Pack and stage',packN?'<span class="badge n">'+packN+'</span>':''],['inv','Inventory',S.products.some(p=>p.needsCount||stockStatus(p).k==='bad')?'<span class="badge">!</span>':''],['issues','Issues',openIss?'<span class="badge">'+openIss+'</span>':''],['about','About this app','']];
+  document.getElementById('nav').innerHTML=tabs.map(t=>`<button class="${view===t[0]?'on':''}" onclick="go('${t[0]}')">${t[1]} ${t[2]}</button>`).join('');
+  document.getElementById('clock').textContent=fmtT(now());
+  const v={tower:vTower,orders:vOrders,pick:vPick,pack:vPack,inv:vInv,issues:vIssues,about:vAbout}[view];
+  document.getElementById('app').innerHTML=v();
+  document.getElementById('drawerRoot').innerHTML=drawer();
+}
+
+/* ---------- boot ---------- */
+(function(){
+  try{const raw=localStorage.getItem(KEY);if(raw){S=JSON.parse(raw);if(Date.now()-S.seededAt>12*HR)S=null}}catch(e){S=null}
+  if(!S)seedData();
+  render();
+  setInterval(()=>{const a=document.activeElement;if(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))return;render()},20000);
+})();
+</script>
+</body>
+</html>
